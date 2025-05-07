@@ -14,7 +14,7 @@
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/suzubu/brush-distortion-lens.git
+git clone https://github.com/suzubu/liquid-hover-effect.git
 
 # 2. Install dependencies
 npm install
@@ -74,7 +74,6 @@ project-root/
 │   ├── components/
 │       └── BrushDistortionLens.jsx
 │       └── shaders.js
-│
 └── README.md
 ```
 
