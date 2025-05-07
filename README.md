@@ -8,7 +8,6 @@
 
 ![Brush Lens Demo](media/brush-lens-preview.gif)
 
-
 ---
 
 ## ⚙️ Getting Started
