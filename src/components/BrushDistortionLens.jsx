@@ -5,29 +5,32 @@ import { vertexShader, fragmentShader } from "./shaders.js";
 import * as THREE from "three";
 
 const BrushDistortionLens = ({ src, className }) => {
-  const containerRef = useRef(null);
-  const rendererRef = useRef(null);
-  const sceneRef = useRef(null);
-  const cameraRef = useRef(null);
-  const uniformsRef = useRef(null);
-  const isSetupCompleteRef = useRef(false);
+  // === DOM & Three.js Refs ===
+  const containerRef = useRef(null); // DOM container for renderer
+  const rendererRef = useRef(null); // Three.js WebGLRenderer
+  const sceneRef = useRef(null); // Scene graph
+  const cameraRef = useRef(null); // Perspective camera
+  const uniformsRef = useRef(null); // GLSL uniforms
+  const isSetupCompleteRef = useRef(false); // One-time setup guard
 
+  // === Configurable Settings ===
   const config = {
-    maskRadius: 0.15,
-    maskSpeed: 0.75,
-    lerpFactor: 0.05,
-    radiusLerpSpeed: 0.1,
-    turbulenceIntensity: 0.075,
+    maskRadius: 0.15, // Brush size when active
+    maskSpeed: 0.75, // Brush warp animation speed
+    lerpFactor: 0.05, // Cursor smoothing factor
+    radiusLerpSpeed: 0.1, // Fade-in/out for brush edge
+    turbulenceIntensity: 0.075, // Strength of jaggedness
   };
 
-  const targetMouse = useRef(new THREE.Vector2(0.5, 0.5));
-  const lerpedMouse = useRef(new THREE.Vector2(0.5, 0.5));
-  const targetRadius = useRef(0.0);
-  const isInView = useRef(false);
-  const isMouseInsideContainer = useRef(false);
-  const lastMouseX = useRef(0);
-  const lastMouseY = useRef(0);
-  const animationFrameId = useRef(null);
+  // === State Refs ===
+  const targetMouse = useRef(new THREE.Vector2(0.5, 0.5)); // Actual mouse position
+  const lerpedMouse = useRef(new THREE.Vector2(0.5, 0.5)); // Smoothed mouse
+  const targetRadius = useRef(0.0); // Current brush radius
+  const isInView = useRef(false); // Intersection observer status
+  const isMouseInsideContainer = useRef(false); // Tracks hover
+  const lastMouseX = useRef(0); // Last mouse X
+  const lastMouseY = useRef(0); // Last mouse Y
+  const animationFrameId = useRef(null); // Active animation frame
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -41,6 +44,7 @@ const BrushDistortionLens = ({ src, className }) => {
       const loader = new THREE.TextureLoader();
       const brushLoader = new THREE.TextureLoader();
 
+      // Load brush texture first, then main image
       brushLoader.load("/textures/soft_brush.png", (brushTexture) => {
         brushTexture.wrapS = THREE.ClampToEdgeWrapping;
         brushTexture.wrapT = THREE.ClampToEdgeWrapping;
@@ -68,17 +72,15 @@ const BrushDistortionLens = ({ src, className }) => {
 
     runSetup();
 
+    // Cleanup on unmount
     return () => {
-      if (animationFrameId.current) {
+      if (animationFrameId.current)
         cancelAnimationFrame(animationFrameId.current);
-      }
       if (rendererRef.current) {
         rendererRef.current.dispose();
         if (containerRef.current) {
           const canvas = containerRef.current.querySelector("canvas");
-          if (canvas) {
-            containerRef.current.removeChild(canvas);
-          }
+          if (canvas) containerRef.current.removeChild(canvas);
         }
       }
     };
@@ -86,8 +88,8 @@ const BrushDistortionLens = ({ src, className }) => {
 
   const setupScene = (texture, brushTexture) => {
     if (!containerRef.current) return;
-    const imageAspect = texture.image.width / texture.image.height;
 
+    const imageAspect = texture.image.width / texture.image.height;
     texture.minFilter = THREE.LinearMipMapLinearFilter;
     texture.magFilter = THREE.LinearFilter;
     texture.anisotropy = 16;
@@ -116,7 +118,6 @@ const BrushDistortionLens = ({ src, className }) => {
     uniformsRef.current = uniforms;
 
     const geometry = new THREE.PlaneGeometry(2, 2);
-
     const material = new THREE.ShaderMaterial({
       uniforms,
       vertexShader,
@@ -131,10 +132,11 @@ const BrushDistortionLens = ({ src, className }) => {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     renderer.capabilities.anisotropy = 16;
-    renderer.setClearColor(0x333333, 1); // Visual debug
+    renderer.setClearColor(0x333333, 1); // Debug background
 
     containerRef.current.appendChild(renderer.domElement);
 
+    // Resize handler to update resolution uniform
     const handleResize = () => {
       if (!containerRef.current || !rendererRef.current || !uniformsRef.current)
         return;
@@ -156,6 +158,7 @@ const BrushDistortionLens = ({ src, className }) => {
     document.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("scroll", handleScroll);
 
+    // Observer disables effect when out of view
     let observer;
     if (containerRef.current) {
       observer = new IntersectionObserver(
@@ -180,6 +183,7 @@ const BrushDistortionLens = ({ src, className }) => {
 
   const updateCursorState = (x, y) => {
     if (!containerRef.current) return;
+
     lastMouseX.current = x;
     lastMouseY.current = y;
 
@@ -189,6 +193,7 @@ const BrushDistortionLens = ({ src, className }) => {
     isMouseInsideContainer.current = inside;
 
     if (inside) {
+      // Normalize mouse to [0,1] relative to component bounds
       targetMouse.current.x = (x - rect.left) / rect.width;
       targetMouse.current.y = 1.0 - (y - rect.top) / rect.height;
       targetRadius.current = config.maskRadius;
@@ -208,6 +213,7 @@ const BrushDistortionLens = ({ src, className }) => {
       return;
     }
 
+    // Smooth mouse movement and radius expansion
     lerpedMouse.current.lerp(targetMouse.current, config.lerpFactor);
     uniformsRef.current.u_mouse.value.copy(lerpedMouse.current);
     uniformsRef.current.u_time.value += 0.01;
