@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🖌️ Brush Distortion Lens
 
-## Getting Started
+> An interactive WebGL distortion shader using a soft brush alpha mask to locally warp an image. Built with Three.js, GLSL, and Next.js (App Router).
 
-First, run the development server:
+---
+
+## 🖼 Preview
+
+![Brush Lens Demo](media/brush-lens-preview.gif)
+
+
+---
+
+## ⚙️ Getting Started
 
 ```bash
+# 1. Clone the repo
+git clone https://github.com/suzubu/brush-distortion-lens.git
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## ✨ Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 🖱 Dynamic brush-based image distortion
+- 🎨 Turbulence effect blends into soft edges using alpha masking
+- ⚡ Smooth performance with animation loop + uniform updates
+- 🌐 Responsive to screen size and mouse movement
+- 🧱 Modular structure for Next.js and Three.js
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🧠 Dev Notes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Shaders
+- The fragment shader uses a loaded brush texture (alpha-only) to modulate distortion intensity.
+- Final UV coordinates are modified by `baseWarp` (subtle background motion) and `brushWarp` (active turbulence).
+- Uses `u_texture`, `u_brush`, `u_mouse`, `u_radius`, `u_time`, and `u_resolution`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Component Behavior
+- React + Three.js setup inside `BrushDistortionLens.jsx`.
+- `IntersectionObserver` disables effect when off-screen.
+- Image and brush are loaded asynchronously using `THREE.TextureLoader`.
+- Mouse movement is smoothed using `lerp()` on a pair of Vector2 values.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📚 Inspiration / Credits
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [CodeGrid](https://www.youtube.com/watch?v=aE2cNoyrhZE)
+- [The Book of Shaders](https://thebookofshaders.com)
+- GLSL experimentation via [Shadertoy](https://shadertoy.com)
+- [Milad Fakurian](https://unsplash.com/photos/a-blue-ribbon-curves-through-space-3-QTY22bQGQ)
+
+---
+
+## 📂 Folder Structure
+
+```bash
+project-root/
+├── public/
+│   └── textures/soft_brush.png 
+│   └── img.jpeg 
+├── src/
+│   └── app/
+│       └── global.css
+│       └── layout.js
+│       └── page.js
+│   ├── components/
+│       └── BrushDistortionLens.jsx
+│       └── shaders.js
+│
+└── README.md
+```
+
+---
+
+## 📜 License
+
+MIT — free to use, remix, and learn from.
+
+---
+
+## 🙋‍♀️ Author
+
+Created by [suzubu](https://github.com/suzubu)
