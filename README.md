@@ -1,4 +1,4 @@
-# 🖌️ Brush Distortion Lens
+# 🖌️ Liquid Hover Effect
 
 > An interactive WebGL distortion shader using a soft brush alpha mask to locally warp an image. Built with Three.js, GLSL, and Next.js (App Router).
 
